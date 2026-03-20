@@ -1,76 +1,101 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ImageModalProps {
   images: string[];
   currentIndex: number;
+  isOpen: boolean;
   onClose: () => void;
-  onNext: () => void;
-  onPrev: () => void;
+  onNavigate: (newIndex: number) => void;
 }
 
-export default function ImageModal({ images, currentIndex, onClose, onNext, onPrev }: ImageModalProps) {
-  // Accesibilidad: Escuchar el teclado (Escape y Flechas)
+export function ImageModal({ images, currentIndex, isOpen, onClose, onNavigate }: ImageModalProps) {
+  // Si no está abierto, no renderizamos nada
+  if (!isOpen) return null;
+
+  // Manejo de teclado (Requisito del Lab)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') onNext();
-      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNavigate((currentIndex + 1) % images.length);
+      if (e.key === 'ArrowLeft') onNavigate((currentIndex - 1 + images.length) % images.length);
     };
 
+    // Bloquear scroll del fondo cuando el modal está abierto
+    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, onNext, onPrev]);
 
-  if (!images || images.length === 0) return null;
+    // Cleanup: restaurar scroll y quitar listener
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentIndex, images.length, onClose, onNavigate]);
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // Solo cerramos si el clic fue directamente en el fondo negro, no en la imagen
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   return (
-    // Backdrop click: Cierra el modal si das clic en el fondo negro
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-      onClick={onClose}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+      onClick={handleBackdropClick} // Requisito: Backdrop click
     >
-      <div 
-        className="relative flex flex-col items-center justify-center w-full max-w-5xl"
-        onClick={(e) => e.stopPropagation()} // Evita que se cierre al hacer clic en la imagen
+      {/* Botón Cerrar */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 right-4 text-white hover:bg-white/20 hover:text-white z-50"
+        onClick={onClose}
       >
-        {/* Close Button */}
-        <button 
-          onClick={onClose} 
-          className="absolute -top-10 right-0 text-white hover:text-gray-300 text-3xl font-bold"
-        >
-          &times;
-        </button>
+        <X className="h-8 w-8" />
+        <span className="sr-only">Cerrar modal</span>
+      </Button>
 
-        <div className="flex items-center justify-between w-full">
-          {/* Navigation Arrows (Prev) */}
-          <button 
-            onClick={onPrev} 
-            className="text-white hover:bg-white/20 p-4 rounded-full text-4xl transition"
-          >
-            &#8249;
-          </button>
-
-          {/* Imagen Actual */}
-          <img 
-            src={images[currentIndex]} 
-            alt={`Property image ${currentIndex + 1}`} 
-            className="max-h-[80vh] w-auto object-contain rounded-md"
-          />
-
-          {/* Navigation Arrows (Next) */}
-          <button 
-            onClick={onNext} 
-            className="text-white hover:bg-white/20 p-4 rounded-full text-4xl transition"
-          >
-            &#8250;
-          </button>
-        </div>
-
-        {/* Image Counter */}
-        <div className="text-white mt-4 text-lg font-medium">
-          {currentIndex + 1} of {images.length}
-        </div>
+      {/* Contador de Imágenes (Requisito del Lab) */}
+      <div className="absolute top-4 left-4 text-white/80 font-medium z-50 bg-black/50 px-3 py-1 rounded-full">
+        {currentIndex + 1} of {images.length}
       </div>
+
+      {/* Botón Anterior */}
+      {images.length > 1 && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 hover:text-white z-50 h-12 w-12 rounded-full"
+          onClick={() => onNavigate((currentIndex - 1 + images.length) % images.length)}
+        >
+          <ChevronLeft className="h-8 w-8" />
+          <span className="sr-only">Imagen anterior</span>
+        </Button>
+      )}
+
+      {/* Imagen Principal Central */}
+      <div className="relative max-w-5xl w-full max-h-[90vh] p-4 flex justify-center items-center">
+        <img
+          src={images[currentIndex]}
+          alt={`Imagen ${currentIndex + 1}`}
+          className="max-w-full max-h-[85vh] object-contain rounded-md shadow-2xl"
+          onClick={(e) => e.stopPropagation()} // Evita que un clic en la imagen cierre el modal
+        />
+      </div>
+
+      {/* Botón Siguiente */}
+      {images.length > 1 && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 hover:text-white z-50 h-12 w-12 rounded-full"
+          onClick={() => onNavigate((currentIndex + 1) % images.length)}
+        >
+          <ChevronRight className="h-8 w-8" />
+          <span className="sr-only">Siguiente imagen</span>
+        </Button>
+      )}
     </div>
   );
 }

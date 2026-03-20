@@ -98,9 +98,20 @@ export function PropertyDetailPage(): React.ReactElement {
             </span>
           </div>
 
-          {/* Nueva Galería de imágenes interactiva */}
-          <div className="mt-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Galería de Imágenes</h2>
+          {/* Galería de imágenes (Imagen Principal + Miniaturas) */}
+          <div className="relative mb-8">
+            {/* Etiqueta Venta/Alquiler (Flotando sobre la foto principal) */}
+            <span
+              className={`absolute top-4 left-4 z-10 px-4 py-2 text-sm font-semibold rounded-full ${
+                property.operationType === 'venta'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-blue-500 text-white'
+              }`}
+            >
+              {OPERATION_TYPE_LABELS[property.operationType]}
+            </span>
+
+            {/* Componente que ahora dibuja la foto gigante y las miniaturas */}
             <ImageGallery images={property.images} />
           </div>
 
