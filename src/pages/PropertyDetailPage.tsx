@@ -22,7 +22,7 @@ import {
 } from '@/types/property';
 import { formatPrice, formatArea } from '@/lib/utils';
 
-import ImageGallery from '@/components/ImageGallery'; //Importar la implementación para la galería de imágenes.
+import { ImageGallery }from '@/components/ImageGallery'; //Importar la implementación para la galería de imágenes.
 
 /**
  * Página de detalle de una propiedad.
@@ -59,10 +59,10 @@ export function PropertyDetailPage(): React.ReactElement {
     }
   };
 
-  // Imagen principal o placeholder
-  const mainImage =
-    property.images[0] ??
-    `https://placehold.co/1200x600/e2e8f0/64748b?text=${encodeURIComponent(property.propertyType)}`;
+  // Preparamos las imágenes (usamos un placeholder si no hay ninguna)
+  const galleryImages = property.images?.length > 0 
+    ? property.images 
+    : [`https://placehold.co/1200x600/e2e8f0/64748b?text=${encodeURIComponent(property.propertyType)}`];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -80,40 +80,24 @@ export function PropertyDetailPage(): React.ReactElement {
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Imagen principal */}
-          <div className="relative rounded-lg overflow-hidden">
-            <img
-              src={mainImage}
-              alt={property.title}
-              className="w-full h-[400px] object-cover"
-            />
-            <span
-              className={`absolute top-4 left-4 px-4 py-2 text-sm font-semibold rounded-full ${
-                property.operationType === 'venta'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-blue-500 text-white'
-              }`}
-            >
-              {OPERATION_TYPE_LABELS[property.operationType]}
-            </span>
-          </div>
-
-          {/* Galería de imágenes (Imagen Principal + Miniaturas) */}
-          <div className="relative mb-8">
-            {/* Etiqueta Venta/Alquiler (Flotando sobre la foto principal) */}
-            <span
-              className={`absolute top-4 left-4 z-10 px-4 py-2 text-sm font-semibold rounded-full ${
-                property.operationType === 'venta'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-blue-500 text-white'
-              }`}
-            >
-              {OPERATION_TYPE_LABELS[property.operationType]}
-            </span>
-
-            {/* Componente que ahora dibuja la foto gigante y las miniaturas */}
-            <ImageGallery images={property.images} />
-          </div>
+           {/* ==================================================================
+              AQUÍ INYECTAMOS NUESTRA NUEVA GALERÍA
+              ================================================================== */}
+          <ImageGallery 
+            images={galleryImages} 
+            title={property.title}
+            badge={
+              <span
+                className={`absolute top-4 left-4 px-4 py-2 text-sm font-semibold rounded-full z-10 shadow-sm ${
+                  property.operationType === 'venta'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-blue-500 text-white'
+                }`}
+              >
+                {OPERATION_TYPE_LABELS[property.operationType]}
+              </span>
+            }
+          />
 
           {/* Descripción */}
           <Card>

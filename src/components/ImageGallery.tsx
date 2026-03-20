@@ -1,74 +1,69 @@
+import type React from 'react';
 import { useState } from 'react';
-import ImageModal from './ImageModal';
+import { ImageModal } from '@/components/ImageModal';
 
 interface ImageGalleryProps {
   images: string[];
+  title: string;
+  badge?: React.ReactNode; // Permitimos pasar el "badge" de Venta/Alquiler para mantener tu diseño
 }
 
-export default function ImageGallery({ images }: ImageGalleryProps) {
-  const [modalOpen, setModalOpen] = useState(false);
+export function ImageGallery({ images, title, badge }: ImageGalleryProps): React.ReactElement {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const openModal = (index: number) => {
     setCurrentIndex(index);
-    setModalOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
-
-  if (!images || images.length === 0) {
-    return <div className="p-4 text-gray-500">No hay imágenes disponibles para esta propiedad.</div>;
-  }
+  const mainImage = images[0] ?? 'https://placehold.co/1200x600/e2e8f0/64748b?text=Sin+Imagen';
 
   return (
-    <div className="w-full space-y-4">
-      {/* 1. Imagen Principal (Gigante y Clickeable) */}
+    <div className="space-y-4">
+      {/* Imagen Principal */}
       <div 
-        className="relative w-full h-[400px] rounded-lg overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition"
+        className="relative rounded-lg overflow-hidden cursor-pointer group"
         onClick={() => openModal(0)}
       >
         <img
-          src={images[0]}
-          alt="Vista principal de la propiedad"
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          src={mainImage}
+          alt={title}
+          className="w-full h-[400px] object-cover transition-transform duration-500 group-hover:scale-105"
         />
+        {/* Capa oscura al hacer hover para indicar que es clickeable */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+        {badge}
       </div>
 
-      {/* 2. Cuadrícula de Miniaturas (Las demás fotos) */}
+      {/* Cuadrícula de Miniaturas (Requisito del Lab) */}
       {images.length > 1 && (
         <div className="grid grid-cols-4 gap-2">
-          {images.slice(1).map((img, idx) => (
-            <div 
-              key={idx} 
-              className="aspect-video overflow-hidden rounded-lg cursor-pointer border border-gray-200 shadow-sm hover:shadow-md transition"
-              onClick={() => openModal(idx + 1)} // +1 porque cortamos la primera foto
+          {images.slice(1).map((img, index) => (
+            <div
+              key={index}
+              className="relative rounded-lg overflow-hidden cursor-pointer h-24 group"
+              onClick={() => openModal(index + 1)} // +1 porque el slice quitó la primera imagen
             >
               <img
                 src={img}
-                alt={`Miniatura ${idx + 2}`}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                alt={`${title} - miniatura ${index + 2}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal a pantalla completa */}
-      {modalOpen && (
-        <ImageModal
-          images={images}
-          currentIndex={currentIndex}
-          onClose={() => setModalOpen(false)}
-          onNext={handleNext}
-          onPrev={handlePrev}
-        />
-      )}
+      {/* Renderizamos el Modal que creamos en el paso anterior */}
+      <ImageModal
+        images={images}
+        currentIndex={currentIndex}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onNavigate={setCurrentIndex}
+      />
     </div>
   );
 }
