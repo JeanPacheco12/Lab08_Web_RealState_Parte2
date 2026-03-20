@@ -1,4 +1,4 @@
-# Lab 02 - Real Estate Web App (Parte 2: Image Gallery & Accesibilidad) 
+# Lab 08 - Real Estate Web App (Parte 2: Image Gallery & Accesibilidad) 
 
 ## Funcionalidades Implementadas (Con respecto al Definition of Done)
 Se implementó una Galería de Imágenes interactiva cumpliendo estrictamente con la rúbrica y aplicando principios de Clean Code y buena UX:
